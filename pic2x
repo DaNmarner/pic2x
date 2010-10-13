@@ -83,7 +83,8 @@ if __name__ == '__main__':
         '-o', 
         '--output', 
         dest = 'output',
-        help = 'Path for the resulting file'
+        help = 'Path for the resulting file, '
+        'default to name of the current folder'
     )
     parser.add_option(
         '-s', 
@@ -103,7 +104,7 @@ if __name__ == '__main__':
         '-t',
         '--type',
         dest = 'type',
-        help = 'Type of file you want to convert to (pdf or tex)'
+        help = 'Type of file you want to convert to pdf(default) or tex'
     )
     (ops, args) = parser.parse_args()
     if ops.type == 'pdf':
