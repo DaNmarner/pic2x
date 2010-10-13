@@ -1,0 +1,21 @@
+pic2x
+
+A tool to convert pictures into a pdf (or latex source file, or potentially more).
+
+Usage: pic2x [options] pic1.jpg pic2.png ...
+
+Options:
+  -h, --help            show this help message and exit
+  -o OUTPUT, --output=OUTPUT
+                        Path for the resulting file
+  -s, --stretch-pics    Stretch each picture to fill in a whole page.
+  -i, --single-per-page
+                        One picture per page.
+  -t TYPE, --type=TYPE  Type of file you want to convert to (pdf or tex)
+
+Latest version can be found at http://github.com/DaNmarner/pic2x
+
+requires: Python 2.4 , 2.5 or 2.6, pdflatex if pdf is the target format.
+
+This program is released under BSD license, see LICENSE for more details.
+

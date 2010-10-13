@@ -111,7 +111,7 @@ if __name__ == '__main__':
     elif ops.type == 'tex':
         converter = LatexConverter
     else: # default
-        converter = LatexConverter
+        converter = PdfConverter
 
     c = converter(args, ops.output)
     c.do_convert(ops.stretch, ops.single)
