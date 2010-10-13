@@ -1,0 +1,119 @@
+#!/usr/bin/env python
+__version__ = '0.1'
+
+import os
+
+class BaseConverter(object):
+    ''' 
+    A base class for converters that assembles pics into 
+    one file of a certain type 
+
+    User need to define the suffix for the target file as well as
+    a do_convert() method.
+    '''
+    valid_types = ['png', 'jpg']
+    # to be defined
+    target_suffix = None
+    def __init__(self, pic_list, target_path = None):
+        self.pic_list = [p for p in pic_list \
+                if os.path.isfile(p) and p.split('.')[-1] in self.valid_types]
+        if target_path:
+            if not target_path.endswith(self.target_suffix):
+                target_path += self.target_suffix
+            self.target_path = target_path
+        else:
+            self.target_path = os.path.basename(os.getcwd())+self.target_suffix
+
+    def do_convert(self): raise NotImplementedError 
+LATEX_TEMPLATE = r'''
+\documentclass[a4paper]{article}
+\usepackage[pdftex]{graphicx}
+\usepackage[left=0.1in, top=0.1in, right=0.1in, nohead, nofoot]{geometry}
+\begin{document}
+%s
+\end{document}
+'''
+
+class LatexConverter(BaseConverter):
+    '''
+    Assemble the files into a LaTeX source file using graphicx package
+    '''
+    target_suffix = '.tex'
+
+    def format(self, stretch = True, single = True):
+        if stretch:
+            item = r'\includegraphics[width=8.1in, height=11.4in]{%s}'
+        else:
+            item = r'\includegraphics{%s}'
+        if single:
+            item += '\n\\newpage'
+
+        return LATEX_TEMPLATE % '\n'.join(item%p for p in self.pic_list)
+
+    def do_convert(self, stretch = True, single = True):
+        fout = open(self.target_path, 'w')
+        print >> fout, self.format(stretch, single)
+        fout.close()
+
+class PdfConverter(LatexConverter):
+    target_suffix = '.pdf'
+
+    def do_convert(self, stretch = True, single = True):
+        import subprocess
+        target_base = '.'.join(self.target_path.split('.')[:-1])
+        tmp_name = target_base + '.tex'
+        tmp = open(tmp_name, 'w')
+        print >> tmp, self.format(stretch, single)
+        tmp.close()
+        subprocess.call(['pdflatex', tmp_name])
+        subprocess.call([
+            'rm', 
+            tmp_name, 
+            target_base+'.log',
+            target_base+'.aux',
+            ])
+
+if __name__ == '__main__':
+    print "\npic2x: convert pictures to pdf/latex v%s \n" % __version__
+    from optparse import OptionParser
+    usage = "usage: %prog [options] pic1.jpg pic2.png ..."
+
+    parser = OptionParser(usage = usage)
+    parser.add_option(
+        '-o', 
+        '--output', 
+        dest = 'output',
+        help = 'Path for the resulting file'
+    )
+    parser.add_option(
+        '-s', 
+        '--stretch-pics', 
+        action = 'store_true', 
+        dest = 'stretch',
+        help = 'Stretch each picture to fill in a whole page.'
+    )
+    parser.add_option(
+        '-i', 
+        '--single-per-page', 
+        action = 'store_true', 
+        dest = 'single',
+        help = 'One picture per page.'
+    )
+    parser.add_option(
+        '-t',
+        '--type',
+        dest = 'type',
+        help = 'Type of file you want to convert to (pdf or tex)'
+    )
+    (ops, args) = parser.parse_args()
+    if ops.type == 'pdf':
+        converter = PdfConverter
+    elif ops.type == 'tex':
+        converter = LatexConverter
+    else: # default
+        converter = LatexConverter
+
+    c = converter(args, ops.output)
+    c.do_convert(ops.stretch, ops.single)
+
+    print '\n\nSuccessfully converted to %s.\n\n' % c.target_path
