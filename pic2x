@@ -61,11 +61,12 @@ class PdfConverter(LatexConverter):
     def do_convert(self, stretch = True, single = True):
         import subprocess
         target_base = '.'.join(self.target_path.split('.')[:-1])
+        target_dir = os.path.dirname(self.target_path)
         tmp_name = target_base + '.tex'
         tmp = open(tmp_name, 'w')
         print >> tmp, self.format(stretch, single)
         tmp.close()
-        subprocess.call(['pdflatex', tmp_name])
+        subprocess.call(['pdflatex', '-output-directory', target_dir, tmp_name])
         subprocess.call([
             'rm', 
             tmp_name, 
