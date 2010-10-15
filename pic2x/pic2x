@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-__version__ = '0.1'
+__version__ = '0.2'
 
 import os
 
@@ -142,7 +142,7 @@ if __name__ == '__main__':
         '-t',
         '--type',
         dest = 'type',
-        help = 'Type of file you want to convert to pdf(default) or tex'
+        help = 'Type of file you want to convert to pdf(default), html or tex'
     )
     (ops, args) = parser.parse_args()
     if ops.type == 'pdf':
