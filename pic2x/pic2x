@@ -15,7 +15,7 @@ class BaseConverter(object):
     # to be defined
     target_suffix = None
     def __init__(self, pic_list, target_path = None):
-        self.pic_list = [p for p in pic_list \
+        self.pic_list = [os.path.abspath(p) for p in pic_list \
                 if os.path.isfile(p) and p.split('.')[-1] in self.valid_types]
         if target_path:
             if not target_path.endswith(self.target_suffix):
@@ -23,8 +23,34 @@ class BaseConverter(object):
             self.target_path = target_path
         else:
             self.target_path = os.path.basename(os.getcwd())+self.target_suffix
+        self.target_path = os.path.abspath(self.target_path)
 
     def do_convert(self): raise NotImplementedError 
+
+HTML_TEMPLATE = r'''
+<html><head><style>@page { margin:1mm; }</style></head><body> 
+%s 
+</body></html>
+'''
+
+class HtmlConverter(BaseConverter):
+    target_suffix = '.html'
+
+    def format(self, stretch = True, single = True):
+        if stretch:
+            item = r'<img width="8.1in" height="11.5in" src="%s"\>'
+        else:
+            item = r'<img src="%s"\>'
+        if single:
+            item += r' <pdf:nextpage>'
+
+        return HTML_TEMPLATE % '\n'.join(item%p for p in self.pic_list)
+
+    def do_convert(self, stretch = True, single = True):
+        fout = open(self.target_path, 'w')
+        print >> fout, self.format(stretch, single)
+        fout.close()
+
 LATEX_TEMPLATE = r'''
 \documentclass[a4paper]{article}
 \usepackage[pdftex]{graphicx}
@@ -55,7 +81,7 @@ class LatexConverter(BaseConverter):
         print >> fout, self.format(stretch, single)
         fout.close()
 
-class PdfConverter(LatexConverter):
+class PdfLatexConverter(LatexConverter):
     target_suffix = '.pdf'
 
     def do_convert(self, stretch = True, single = True):
@@ -73,6 +99,17 @@ class PdfConverter(LatexConverter):
             target_base+'.log',
             target_base+'.aux',
             ])
+
+class PdfConverter(HtmlConverter):
+    target_suffix = '.pdf'
+
+    def do_convert(self, stretch = True, single = True):
+        from ho import pisa
+        pisa.CreatePDF(
+            self.format(stretch, single),
+            file(self.target_path, 'wb')
+        )
+        
 
 if __name__ == '__main__':
     print "\npic2x: convert pictures to pdf/latex v%s \n" % __version__
@@ -112,6 +149,8 @@ if __name__ == '__main__':
         converter = PdfConverter
     elif ops.type == 'tex':
         converter = LatexConverter
+    elif ops.type == 'html':
+        converter = HtmlConverter
     else: # default
         converter = PdfConverter
 
