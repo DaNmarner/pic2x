@@ -16,7 +16,7 @@ class BaseConverter(object):
     target_suffix = None
     def __init__(self, pic_list, target_path = None):
         self.pic_list = [os.path.abspath(p) for p in pic_list \
-                if os.path.isfile(p) and p.split('.')[-1] in self.valid_types]
+                if os.path.isfile(p) and p.split('.')[-1].lower() in self.valid_types]
         if target_path:
             if not target_path.endswith(self.target_suffix):
                 target_path += self.target_suffix
@@ -54,7 +54,7 @@ class HtmlConverter(BaseConverter):
 LATEX_TEMPLATE = r'''
 \documentclass[a4paper]{article}
 \usepackage[pdftex]{graphicx}
-\usepackage[left=0.1in, top=0.1in, right=0.1in, nohead, nofoot]{geometry}
+\usepackage[left=0in, top=0in, right=0in, bottom=0in, nohead, nofoot]{geometry}
 \begin{document}
 %s
 \end{document}
@@ -152,7 +152,7 @@ if __name__ == '__main__':
     elif ops.type == 'html':
         converter = HtmlConverter
     else: # default
-        converter = PdfConverter
+        converter = PdfLatexConverter
 
     c = converter(args, ops.output)
     c.do_convert(ops.stretch, ops.single)
